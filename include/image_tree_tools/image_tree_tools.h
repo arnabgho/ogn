@@ -5,7 +5,6 @@
 #include "voxel_grid.h"
 #include "octree.h"
 #include "common_util.h"
-
 #define CLASS_MIXED 2
 #define CLASS_IGNORE 3
 
@@ -18,5 +17,5 @@ typedef unsigned int KeyType;
 typedef byte SignalType;
 typedef OccupancyVoxelGrid VoxelGrid;
 typedef GeneralOctree<SignalType> Octree;
-
+typedef GeneralOctree<KeyType> ColorOctree;
 #endif //IMAGE_TREE_TOOLS_H_
