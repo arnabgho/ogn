@@ -16,7 +16,7 @@ template <typename Dtype>
 void OGNColorDataLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top)
 {
-    const int batch_size = this->layer_param_.ogn_data_param().batch_size();
+    const int batch_size = this->layer_param_.ogn_color_data_param().batch_size();
 
     vector<int> values_shape;
     vector<int> labels_shape;
@@ -55,8 +55,8 @@ void OGNColorDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
 
     this->_octree_keys.clear();
-    const int batch_size = this->layer_param_.ogn_data_param().batch_size();
-    int num_elements = top[0]->shape(1);
+    const int batch_size = this->layer_param_.ogn_color_data_param().batch_size();
+    int num_elements = top[0]->shape(2);
 
     Dtype* top_values = top[0]->mutable_cpu_data();
     Dtype* top_labels = top[1]->mutable_cpu_data();
@@ -94,7 +94,7 @@ void OGNColorDataLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 template <typename Dtype>
 int OGNColorDataLayer<Dtype>::select_next_batch_models(vector<int> labels)
 {
-    const bool preload_data = this->layer_param_.ogn_data_param().preload_data();
+    const bool preload_data = this->layer_param_.ogn_color_data_param().preload_data();
     int num_elements = 0;
     _batch_octrees.clear();
     _batch_labels.clear();
@@ -124,8 +124,8 @@ template <typename Dtype>
 void OGNColorDataLayer<Dtype>::load_data_from_disk()
 {
     cout << "Loading training data from disk..." << endl;
-    const string source = this->layer_param_.ogn_data_param().source();
-    const bool preload_data = this->layer_param_.ogn_data_param().preload_data();
+    const string source = this->layer_param_.ogn_color_data_param().source();
+    const bool preload_data = this->layer_param_.ogn_color_data_param().preload_data();
 
     ifstream infile(source.c_str());
     string name;

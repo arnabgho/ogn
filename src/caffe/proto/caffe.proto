@@ -412,6 +412,9 @@ message LayerParameter {
   optional OGNConvParameter ogn_conv_param = 1002;
   optional OGNPropParameter ogn_prop_param = 1003;
   optional OGNOutputParameter ogn_output_param = 1004;
+
+  optional OGNColorDataParameter ogn_color_data_param = 1005;
+  optional OGNColorLossPrepParameter ogn_color_loss_prep_param = 1006;
 }
 
 // Message that stores parameters used to apply transformation
@@ -1219,6 +1222,17 @@ message OGNDataParameter{
 }
 
 message OGNLossPrepParameter {
+    optional string gt_key_layer = 1;
+    optional string pr_key_layer = 2;
+    optional bool use_voxel_grid = 3 [default = false];
+}
+message OGNColorDataParameter{
+  optional uint32 batch_size = 1;
+  optional string source = 2;
+  optional bool preload_data = 3 [default = true];
+}
+
+message OGNColorLossPrepParameter {
     optional string gt_key_layer = 1;
     optional string pr_key_layer = 2;
     optional bool use_voxel_grid = 3 [default = false];

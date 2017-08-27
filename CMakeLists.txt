@@ -68,6 +68,11 @@ set(Caffe_SRC_DIR ${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_BINARY_DIR})
 
 # ---[ Includes & defines for CUDA
+set(${CMAKE_CXX_FLAGS} "-D_FORCE_INLINES ${CMAKE_CXX_FLAGS}")
+
+if (NOT FO_BOOST_STATIC_LINK)
+    add_definitions(-DBOOST_ALL_NO_LIB -DBOOST_ALL_DYN_LINK -DBOOST_LOG_DYN_LINK)
+endif()
 
 # cuda_compile() does not have per-call dependencies or include pathes
 # (cuda_compile() has per-call flags, but we set them here too for clarity)

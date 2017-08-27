@@ -17,7 +17,7 @@ void OGNDataLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top)
 {
     const int batch_size = this->layer_param_.ogn_data_param().batch_size();
-
+    
     vector<int> values_shape;
     vector<int> labels_shape;
     labels_shape.push_back(batch_size);

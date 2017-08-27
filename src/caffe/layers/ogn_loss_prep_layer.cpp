@@ -19,7 +19,7 @@ void OGNLossPrepLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
 
     int batch_size = bottom[0]->shape(0);
     int num_pixels = bottom[0]->shape(2);
-
+    
     vector<int> output_shape;
     output_shape.push_back(batch_size);
     output_shape.push_back(1);
@@ -99,3 +99,6 @@ INSTANTIATE_CLASS(OGNLossPrepLayer);
 REGISTER_LAYER_CLASS(OGNLossPrep);
 
 }  // namespace caffe
+
+
+

@@ -9,12 +9,12 @@ namespace caffe {
 using namespace std;
 
 template <typename Dtype>
-void OGNLossPrepLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
+void OGNColorLossPrepLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
 }
 
 template <typename Dtype>
-void OGNLossPrepLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
+void OGNColorLossPrepLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
 
     int batch_size = bottom[0]->shape(0);
@@ -33,31 +33,33 @@ void OGNLossPrepLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
 }
 
 template <typename Dtype>
-void OGNLossPrepLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
+void OGNColorLossPrepLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
 
     int batch_size = bottom[0]->shape(0);
     int num_pixels = bottom[0]->shape(2);
 
-    int gt_num_pixels = bottom[1]->shape(1);
+    int gt_num_pixels = bottom[1]->shape(2); //Since now num channels occupy shape(!)
 
-    const string gt_key_layer_name = this->layer_param_.ogn_loss_prep_param().gt_key_layer();
-    const string pr_key_layer_name = this->layer_param_.ogn_loss_prep_param().pr_key_layer();
-    const bool use_voxel_grid = this->layer_param_.ogn_loss_prep_param().use_voxel_grid();
-
-    shared_ptr<Layer<Dtype> > gt_raw_ptr = this->parent_net()->layer_by_name(gt_key_layer_name);
+    const string gt_key_layer_name = this->layer_param_.ogn_color_loss_prep_param().gt_key_layer();
+    const string pr_key_layer_name = this->layer_param_.ogn_color_loss_prep_param().pr_key_layer();
+    const bool use_voxel_grid = this->layer_param_.ogn_color_loss_prep_param().use_voxel_grid();
+ 
     shared_ptr<Layer<Dtype> > pr_raw_ptr = this->parent_net()->layer_by_name(pr_key_layer_name);
+    shared_ptr<Layer<Dtype> > gt_raw_ptr = this->parent_net()->layer_by_name(gt_key_layer_name);
+    
 
     shared_ptr<OGNLayer<Dtype> > gt_key_layer = boost::dynamic_pointer_cast<OGNLayer<Dtype> >(gt_raw_ptr);
     shared_ptr<OGNLayer<Dtype> > pr_key_layer = boost::dynamic_pointer_cast<OGNLayer<Dtype> >(pr_raw_ptr);
 
+    
     const Dtype* gt_values = bottom[1]->cpu_data();
 
     Dtype* output_colors = top[0]->mutable_cpu_data();
 
-    const int dim = batch_size * top[0]->shape(1) * 3 * top[0]->shape(2);
+    const int dim = batch_size * top[0]->shape(1) * top[0]->shape(2);
     //caffe_set(dim, (Dtype)CLASS_IGNORE, output_classification);
-    caffe_set( dim , (Dtype)0, output_colors )
+    caffe_set( dim , (Dtype)0, output_colors );
 
     for(int bt = 0; bt<batch_size; bt++)
     {
@@ -74,15 +76,17 @@ void OGNLossPrepLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
                 {
                     SignalType gt_value;
                     int gt_ind = gt_keys_octree.get_value(it->first, use_voxel_grid);
-                    for( ch=0;ch<3;ch++){
+                    for(int ch=0;ch<3;ch++){
                         if(gt_ind != -1) gt_value = gt_values[bt *3*gt_num_pixels + ch*gt_num_pixels + gt_ind];
                         else gt_value = 0;           // CLASS_MIXED;
-                        output_colors[bt * 3 * num_pixels + ch*num_pixels + it->second  ] = gt_value;
+                        float f_gt_value= gt_value/255.0;
+                        output_colors[bt * 3 * num_pixels + ch*num_pixels + it->second  ] = (Dtype)f_gt_value;
                     }
                 }
                 else
                 {
-                    output_colors[bt * num_pixels + ch*num_pixels  + it->second] = 0;            // CLASS_IGNORE;   
+                    for(int ch=0;ch<3;ch++)
+                        output_colors[bt * 3 * num_pixels + ch*num_pixels  + it->second] = 0;            // CLASS_IGNORE;   
                 }
             }
         }
@@ -94,7 +98,7 @@ void OGNLossPrepLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 }
 
 template <typename Dtype>
-void OGNLossPrepLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
+void OGNColorLossPrepLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
 }
 
