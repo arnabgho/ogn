@@ -115,7 +115,6 @@ def octree_to_voxel_grid(ot, resolution):
 def get_cube_params(key, resolution):
     l = compute_level(np.uint32(key))
     max_level = np.uint32(math.log(resolution, 2))
-
     code = (np.uint32(key) & ~(np.uint32(1) << np.uint32(l * 3))) \
         << np.uint32((max_level - l) * 3)
 
@@ -125,7 +124,6 @@ def get_cube_params(key, resolution):
     x = x + float(side_len) / 2.0
     y = y + float(side_len) / 2.0
     z = z + float(side_len) / 2.0
-
     return x, y, z, side_len
 
 
@@ -223,7 +221,7 @@ property float y
 property float z
 end_header
 %s"""
-
+    print(len(ply_vertices))
     for side_len in ply_vertices:
       print(side_len)
       path = 'tmp-ply-%d.ply'%(side_len)
@@ -250,6 +248,89 @@ end_header
 
       cnt += 1
 
+def save_occ_data(file_name):
+    vg, resolution = import_ot(file_name)
+    global_scale = 128.0 / resolution
+
+    ply_vertices = {}
+    for key in vg:
+        if np.uint32(vg[key]) == CLASS_FILLED:
+            x, y, z, side_len = get_cube_params(key, resolution)
+            x -= resolution//2
+            y -= resolution//2
+            z -= resolution//2
+            if side_len not in ply_vertices:
+              ply_vertices[side_len] = []
+            ply_vertices[side_len].append('%f %f %f'%(x*global_scale,y*global_scale,z*global_scale))
+
+    cnt = 1
+
+    ply_template = """ply
+format ascii 1.0
+element vertex %d
+property float x
+property float y
+property float z
+end_header
+%s"""
+    print(len(ply_vertices))
+    for side_len in ply_vertices:
+      print(side_len)
+      path = 'tmp-ply-%d.ply'%(side_len)
+      with open(path, 'w') as f:
+        f.write(ply_template%(len(ply_vertices[side_len]),
+                              '\n'.join(ply_vertices[side_len])))
+
+def save_colored_ply(file_name):
+    vg, resolution = import_ot(file_name)
+    global_scale = 128.0 / resolution
+
+    ply_vertices = {}
+    for key in vg:
+        value = np.uint32(vg[key])
+        div = []
+        for divIter in range(4):
+            div.append(value & ((1 << 8) - 1))
+            value = value >> 8
+
+        #flag = 0
+        #for divIter in range(4):
+        #    if (div[divIter] > 0):
+        #        flag = 1
+
+        if np.uint32(div[3]) == CLASS_FILLED:
+        #if flag == 1:
+            x, y, z, side_len = get_cube_params(key, resolution)
+            x -= resolution//2
+            y -= resolution//2
+            z -= resolution//2
+
+            if side_len not in ply_vertices:
+              ply_vertices[side_len] = []
+            ply_vertices[side_len].append('%f %f %f %d %d %d'%(x*global_scale,y*global_scale,z*global_scale,div[0],div[1],div[2]))
+
+    cnt = 1
+
+    ply_template = """ply
+format ascii 1.0
+element vertex %d
+property float x
+property float y
+property float z
+property uchar red
+property uchar green
+property uchar blue
+end_header
+%s"""
+    print(len(ply_vertices))
+    for side_len in ply_vertices:
+      print(side_len)
+      path = 'tmp-ply-%d.ply'%(side_len)
+      with open(path, 'w') as f:
+        f.write(ply_template%(len(ply_vertices[side_len]),
+                              '\n'.join(ply_vertices[side_len])))
+
+
 def parse_arguments(argv):
     cnt = 0
     for arg in argv:
@@ -261,7 +342,9 @@ def main():
   file_name = parse_arguments(sys.argv)
   setup_camera()
   setup_proto_cubes()
-  load_data(file_name)
+  save_colored_ply(file_name)
+  #save_occ_data(file_name)
+  #load_data(file_name)
   setup_general()
 
 if __name__ == '__main__':

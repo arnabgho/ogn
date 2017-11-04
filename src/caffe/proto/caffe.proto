@@ -415,6 +415,7 @@ message LayerParameter {
 
   optional OGNColorDataParameter ogn_color_data_param = 1005;
   optional OGNColorLossPrepParameter ogn_color_loss_prep_param = 1006;
+  optional OGNColorOutputParameter ogn_color_output_param = 1007;
 }
 
 // Message that stores parameters used to apply transformation
@@ -1259,6 +1260,11 @@ message OGNPropParameter {
 }
 
 message OGNOutputParameter {
+    optional string output_path = 1;
+    repeated string key_layer = 2;
+}
+
+message OGNColorOutputParameter {
     optional string output_path = 1;
     repeated string key_layer = 2;
 }
